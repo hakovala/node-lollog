@@ -2,9 +2,12 @@
 
 var Logger = require('./lib/logger');
 
+// list of loggers
 var loggers = [];
 
+// list of enable regexps
 var enabledLoggers = [];
+// list of disable regexps
 var disabledLoggers = [];
 
 /**
@@ -13,37 +16,71 @@ var disabledLoggers = [];
  * @param tag Logger tag
  */
 function LolLog(tag) {
-	var log = loggers[tag];
-	if (!log) {
-		log = new Logger(tag);
-		loggers.push(log);
+	var logger = loggers[tag];
+	if (!logger) {
+		logger = new Logger(tag);
+		logger.enabled = enabled(tag);
+		loggers.push(logger);
 	}
-	return log;
+	return logger;
 }
 module.exports = LolLog;
+module.exports.options = require('./lib/const');
 module.exports.enable = enable;
 module.exports.disable = disable;
 module.exports.enabled = enabled;
 
-function enable(tags) {
-	var split = (tags || '').split(/[\s,]+/);
-	var len = split.length;
-
-	for (var i = 0; i < len; i++) {
-		if (!split[i]) continue;
-		tags = split[i].replace(/\*/g, '.*?');
-		if (tags[0] === '-') {
-			loggerSkips.push(new RegExp('^' + tags.substr(1) + '$'));
-		} else {
-			enabledLoggers.push(new RegExp('^' + tags + '$'));
-		}
+/**
+ * Update Loggers according global enable/disable filters.
+ */
+function updateLoggers() {
+	for (var i = 0; i < loggers.length; i++) {
+		var logger = loggers[i];
+		logger.enabled = enabled(logger.tag);
 	}
 }
 
-function disable() {
-	enable('');
+/**
+ * Enable matching tags.
+ * @param tags Space or comma separated string list of tags or
+ * 				a Array of those strings.
+ */
+function enable(tags) {
+	if (Array.isArray(tags))
+		return tags.forEach(enable);
+
+	tags = (tags || '').split(/[\s,]+/);
+	for (var i = 0; i < tags.length; i++) {
+		if (!tags[i]) continue;
+		var tag = split[i].replace(/\*/g, '.*?');
+		enabledLoggers.push(new RegExp('^' + tag + '$'));
+	}
+	updateLoggers();
 }
 
+/**
+ * Disable matching tags.
+ * @param tags Space or comma separated string list of tags or
+ * 				a Array of those strings.
+ */
+function disable(tags) {
+	if (Array.isArray(tags))
+		return tags.forEach(disable);
+
+	tags = (tags || '').split(/[\s,]+/);
+	for (var i = 0; i < tags.length; i++) {
+		if (!tags[i]) continue;
+		var tag = split[i].replace(/\*/g, '.*?');
+		disabledLoggers.push(new RegExp('^' + tag + '$'));
+	}
+	updateLoggers();
+}
+
+/**
+ * Check if given tag is enabled.
+ * @param tag Logger tag
+ * @returns {boolean} True if enabled
+ */
 function enabled(tag) {
 	for (var i = 0; i < disabledLoggers.length; i++) {
 		if (disabledLoggers[i].test(tag))
