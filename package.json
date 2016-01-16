@@ -1,0 +1,9 @@
+{
+  "name": "lollog",
+  "version": "0.1",
+  "description": "Simple logging with levels",
+  "main": "index.js",
+  "dependencies": {
+    "ms": "^0.7.1"
+  }
+}
