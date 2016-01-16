@@ -52,7 +52,7 @@ function enable(tags) {
 	tags = (tags || '').split(/[\s,]+/);
 	for (var i = 0; i < tags.length; i++) {
 		if (!tags[i]) continue;
-		var tag = split[i].replace(/\*/g, '.*?');
+		var tag = tags[i].replace(/\*/g, '.*?');
 		enabledLoggers.push(new RegExp('^' + tag + '$'));
 	}
 	updateLoggers();
@@ -70,7 +70,7 @@ function disable(tags) {
 	tags = (tags || '').split(/[\s,]+/);
 	for (var i = 0; i < tags.length; i++) {
 		if (!tags[i]) continue;
-		var tag = split[i].replace(/\*/g, '.*?');
+		var tag = tags[i].replace(/\*/g, '.*?');
 		disabledLoggers.push(new RegExp('^' + tag + '$'));
 	}
 	updateLoggers();
