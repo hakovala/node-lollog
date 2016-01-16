@@ -1,8 +1,19 @@
 {
   "name": "lollog",
-  "version": "0.1",
-  "description": "Simple logging with levels",
+  "version": "0.0.0",
+  "description": "Simple logging module",
   "main": "index.js",
+  "author": "Harri Kovalainen <hakovala@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hakovala/node-lollog.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "debug",
+    "log",
+    "logging"
+  ],
   "dependencies": {
     "ms": "^0.7.1",
     "stack-trace": "0.0.9"
