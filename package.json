@@ -1,6 +1,6 @@
 {
   "name": "lollog",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Simple logging module",
   "main": "index.js",
   "author": "Harri Kovalainen <hakovala@gmail.com>",
