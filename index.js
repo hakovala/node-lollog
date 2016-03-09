@@ -5,10 +5,8 @@ var Logger = require('./lib/logger');
 // list of loggers
 var loggers = [];
 
-// list of enable regexps
-var enabledLoggers = [];
-// list of disable regexps
-var disabledLoggers = [];
+// lits of tag levels
+var loggerOptions = [];
 
 /**
  * Get existing Logger instance with given tag
@@ -19,7 +17,7 @@ function LolLog(tag) {
 	var logger = loggers[tag];
 	if (!logger) {
 		logger = new Logger(tag);
-		logger.enabled = enabled(tag);
+		updateLogger(logger);
 		loggers.push(logger);
 	}
 	return logger;
@@ -30,16 +28,58 @@ module.exports.enable = enable;
 module.exports.disable = disable;
 module.exports.enabled = enabled;
 
+module.exports.loggers = loggers;
+module.exports.loggerOptions = loggerOptions;
+
 loadEnv();
 
 /**
- * Convert tag matcher string to RegExp
+ * Parse matcher string
  * @param  {string} tag Tag matcher string
- * @return {RegExp}     RegExp
+ * @return {object}     Object
  */
-function tagToRx(tag) {
-	tag = tag.replace(/\*/g, '.*?');
-	return new RegExp('^' + tag + '$');
+function parseMatcher(matcher) {
+	if (typeof matcher !== 'string')
+		throw new Error('Matcher must be a string');
+
+	matcher = matcher.replace(/\*/g, '.*?');
+	return new RegExp('^' + matcher + '$');
+}
+
+function getLoggerOption(matcher) {
+	return loggerOptions.find(opt => opt.matcher == matcher);
+}
+
+function hasLoggerOption(matcher) {
+	return !!getLoggerOption(matcher);
+}
+
+function setLoggerOption(matcher, enabled, level) {
+	var opt = getLoggerOption(matcher);
+	if (opt) {
+		if (typeof enabled === 'boolean') {
+			opt.enabled = enabled;
+		}
+		if (typeof level === 'number') {
+			opt.level = level;
+		}
+	} else {
+		opt = {
+			matcher: matcher,
+			rx: parseMatcher(matcher),
+			enabled: enabled,
+			level: level,
+		};
+		loggerOptions.push(opt);
+	}
+}
+
+function removeLoggerOption(matcher) {
+	return loggerOptions.splice(loggerOptions.findIndex(opt => opt.matcher == matcher), 1);
+}
+
+function findLoggerOptions(tag) {
+	return loggerOptions.find(opt => opt.rx.test(tag));
 }
 
 /**
@@ -48,14 +88,11 @@ function tagToRx(tag) {
  * Enable/disable defined tags
  */
 function loadEnv() {
-	var tags = process.env.DEBUG;
-	(tags || '').split(/[\s,]+/)
-		.forEach((tag) => {
-			if (tag[0] == '!') {
-				disable(tag.slice(1));
-			} else {
-				enable(tag);
-			}
+	var matchers = process.env.DEBUG;
+	(matchers || '').split(/[\s,]+/)
+		.forEach((matcher) => {
+			if (matcher[0] == '!') setLoggerOption(matcher.slice(1), false);
+			else setLoggerOption(matcher, true);
 		});
 }
 
@@ -63,10 +100,15 @@ function loadEnv() {
  * Update Loggers according global enable/disable filters.
  */
 function updateLoggers() {
-	for (var i = 0; i < loggers.length; i++) {
-		var logger = loggers[i];
-		logger.enabled = enabled(logger.tag);
-	}
+	loggers.forEach(updateLogger);
+}
+
+function updateLogger(logger) {
+	loggerOptions.filter(opt => opt.rx.test(logger.tag))
+		.forEach((opt) => {
+			logger.enabled = opt.enabled;
+			logger.level = opt.level;
+		});
 }
 
 /**
@@ -74,15 +116,15 @@ function updateLoggers() {
  * @param tags Space or comma separated string list of tags or
  * 				a Array of those strings.
  */
-function enable(tags) {
-	if (Array.isArray(tags))
-		return tags.forEach(enable);
+function enable(matcher, level) {
+	if (Array.isArray(matcher))
+		return matcher.forEach(m => enabled(m, level));
 
-	tags = (tags || '').split(/[\s,]+/);
-	for (var i = 0; i < tags.length; i++) {
-		if (!tags[i]) continue;
-		enabledLoggers.push(tagToRx(tags[i]));
-	}
+	(matcher || '').split(/[\s,]+/)
+		.forEach((m) => {
+			setLoggerOption(m, true, level);
+		});
+
 	updateLoggers();
 }
 
@@ -91,32 +133,24 @@ function enable(tags) {
  * @param tags Space or comma separated string list of tags or
  * 				a Array of those strings.
  */
-function disable(tags) {
-	if (Array.isArray(tags))
-		return tags.forEach(disable);
+function disable(matcher) {
+	if (Array.isArray(matcher))
+		return matcher.forEach(m => disable(m));
 
-	tags = (tags || '').split(/[\s,]+/);
-	for (var i = 0; i < tags.length; i++) {
-		if (!tags[i]) continue;
-		disabledLoggers.push(tagToRx(tags[i]));
-	}
+	(matcher || '').split(/[\s,]+/)
+		.forEach((m) => {
+			setLoggerOption(m, false);
+		});
+
 	updateLoggers();
 }
 
 /**
  * Check if given tag is enabled.
- * @param tag Logger tag
- * @returns {boolean} True if enabled
+ * @param   {string}  tag Logger tag
+ * @returns {boolean}     True if enabled
  */
 function enabled(tag) {
-	for (var i = 0; i < disabledLoggers.length; i++) {
-		if (disabledLoggers[i].test(tag))
-			return false;
-	}
-	for (var i = 0; i < enabledLoggers.length; i++) {
-		if (enabledLoggers[i].test(tag))
-			return true;
-	}
-	return false;
+	var opt = findLoggerOptions(tag);
+	return !!(opt && opt.enabled);
 }
-
