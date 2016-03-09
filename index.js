@@ -30,6 +30,25 @@ module.exports.enable = enable;
 module.exports.disable = disable;
 module.exports.enabled = enabled;
 
+loadEnv();
+
+/**
+ * Load DEBUG environment variable
+ *
+ * Enable/disable defined tags
+ */
+function loadEnv() {
+	var tags = process.env.DEBUG;
+	(tags || '').split(/[\s,]+/)
+		.forEach((tag) => {
+			if (tag[0] == '!') {
+				disable(tag.slice(1));
+			} else {
+				enable(tag);
+			}
+		});
+}
+
 /**
  * Update Loggers according global enable/disable filters.
  */
