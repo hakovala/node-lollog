@@ -33,6 +33,16 @@ module.exports.enabled = enabled;
 loadEnv();
 
 /**
+ * Convert tag matcher string to RegExp
+ * @param  {string} tag Tag matcher string
+ * @return {RegExp}     RegExp
+ */
+function tagToRx(tag) {
+	tag = tag.replace(/\*/g, '.*?');
+	return new RegExp('^' + tag + '$');
+}
+
+/**
  * Load DEBUG environment variable
  *
  * Enable/disable defined tags
@@ -71,8 +81,7 @@ function enable(tags) {
 	tags = (tags || '').split(/[\s,]+/);
 	for (var i = 0; i < tags.length; i++) {
 		if (!tags[i]) continue;
-		var tag = tags[i].replace(/\*/g, '.*?');
-		enabledLoggers.push(new RegExp('^' + tag + '$'));
+		enabledLoggers.push(tagToRx(tags[i]));
 	}
 	updateLoggers();
 }
@@ -89,8 +98,7 @@ function disable(tags) {
 	tags = (tags || '').split(/[\s,]+/);
 	for (var i = 0; i < tags.length; i++) {
 		if (!tags[i]) continue;
-		var tag = tags[i].replace(/\*/g, '.*?');
-		disabledLoggers.push(new RegExp('^' + tag + '$'));
+		disabledLoggers.push(tagToRx(tags[i]));
 	}
 	updateLoggers();
 }
