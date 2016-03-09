@@ -46,14 +46,30 @@ function parseMatcher(matcher) {
 	return new RegExp('^' + matcher + '$');
 }
 
+/**
+ * Get logger options with matcher string
+ * @param  {string} matcher Matcher string
+ * @return {object}         Logger options, or undefined if not found
+ */
 function getLoggerOption(matcher) {
 	return loggerOptions.find(opt => opt.matcher == matcher);
 }
 
+/**
+ * Check if logger options for given matcher string exists
+ * @param  {string}  matcher Matcher string
+ * @return {boolean} True if matcher options found
+ */
 function hasLoggerOption(matcher) {
 	return !!getLoggerOption(matcher);
 }
 
+/**
+ * Create/update logger options for given matcher
+ * @param {string}  matcher Matcher string
+ * @param {boolean} enabled Logger enabled/disabled
+ * @param {number}  level   Logger level number
+ */
 function setLoggerOption(matcher, enabled, level) {
 	var opt = getLoggerOption(matcher);
 	if (opt) {
@@ -74,10 +90,20 @@ function setLoggerOption(matcher, enabled, level) {
 	}
 }
 
+/**
+ * Remove logger options for given matcher
+ * @param  {string} matcher Matcher string
+ * @return {object}         Removed logger options object
+ */
 function removeLoggerOption(matcher) {
 	return loggerOptions.splice(loggerOptions.findIndex(opt => opt.matcher == matcher), 1);
 }
 
+/**
+ * Find matching logger options for tag
+ * @param  {string} tag Tag string
+ * @return {object}     Logger options object
+ */
 function findLoggerOptions(tag) {
 	return loggerOptions.find(opt => opt.rx.test(tag));
 }
@@ -97,12 +123,16 @@ function loadEnv() {
 }
 
 /**
- * Update Loggers according global enable/disable filters.
+ * Update all loggers according loggerOptions list.
  */
 function updateLoggers() {
 	loggers.forEach(updateLogger);
 }
 
+/**
+ * Update logger according loggerOptions list.
+ * @param  {Logger} logger Logger object
+ */
 function updateLogger(logger) {
 	loggerOptions.filter(opt => opt.rx.test(logger.tag))
 		.forEach((opt) => {
@@ -112,9 +142,9 @@ function updateLogger(logger) {
 }
 
 /**
- * Enable matching tags.
- * @param tags Space or comma separated string list of tags or
- * 				a Array of those strings.
+ * Enable matching Loggers.
+ * @param {string|array} tags  Space or comma separated string list of tags or a Array of those strings.
+ * @param {number}       level Logger log level number
  */
 function enable(matcher, level) {
 	if (Array.isArray(matcher))
@@ -129,9 +159,8 @@ function enable(matcher, level) {
 }
 
 /**
- * Disable matching tags.
- * @param tags Space or comma separated string list of tags or
- * 				a Array of those strings.
+ * Disable matching Loggers.
+ * @param {string|array} tags  Space or comma separated string list of tags or a Array of those strings.
  */
 function disable(matcher) {
 	if (Array.isArray(matcher))
