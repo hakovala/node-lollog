@@ -2,6 +2,8 @@
 
 var Logger = require('./lib/logger');
 
+var options = require('./lib/const');
+
 // list of loggers
 var loggers = [];
 
@@ -23,7 +25,7 @@ function LolLog(tag) {
 	return logger;
 }
 module.exports = LolLog;
-module.exports.options = require('./lib/const');
+module.exports.options = options;
 module.exports.enable = enable;
 module.exports.disable = disable;
 module.exports.enabled = enabled;
@@ -114,6 +116,12 @@ function findLoggerOptions(tag) {
  * Enable/disable defined tags
  */
 function loadEnv() {
+	var level = process.env.LOLLOG_LEVEL;
+	if (level) {
+		options.level = level.toLowerCase();
+		console.log(options.level);
+	}
+
 	var matchers = process.env.DEBUG;
 	(matchers || '').split(/[\s,]+/)
 		.forEach((matcher) => {
