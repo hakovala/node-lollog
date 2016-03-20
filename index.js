@@ -19,6 +19,7 @@ function LolLog(tag) {
 	var logger = loggers[tag];
 	if (!logger) {
 		logger = new Logger(tag);
+		logger.enabled = false;
 		updateLogger(logger);
 		loggers.push(logger);
 	}
