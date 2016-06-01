@@ -33,6 +33,9 @@ module.exports.enabled = enabled;
 
 module.exports.loggers = loggers;
 module.exports.loggerOptions = loggerOptions;
+module.exports.Writers = {
+	console: require('./lib/writers/console'),
+};
 
 loadEnv();
 
