@@ -129,7 +129,7 @@ function loadEnv() {
 	var matchers = process.env.DEBUG;
 	(matchers || '').split(/[\s,]+/)
 		.forEach((matcher) => {
-			if (matcher[0] == '!') setLoggerOption(matcher.slice(1), false);
+			if (matcher[0] == '-') setLoggerOption(matcher.slice(1), false);
 			else setLoggerOption(matcher, true);
 		});
 }
